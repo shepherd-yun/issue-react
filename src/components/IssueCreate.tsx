@@ -42,7 +42,7 @@ export function IssueCreate({ onBack }: IssueCreateProps) {
         try {
           // 使用高德地图逆地理编码 API
           const response = await fetch(
-            `https://restapi.amap.com/v3/geocode/regeo?key=d1e3358b9104a1c7aefa26f3f16f421b&location=${longitude},${latitude}`
+            `https://restapi.amap.com/v3/geocode/regeo?key=9c6e23304e2f715bd24325d88fc3ac01&location=${longitude},${latitude}`
           );
           const data = await response.json();
           const address = data.regeocode?.formatted_address || '';
