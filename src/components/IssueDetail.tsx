@@ -84,7 +84,6 @@ export function IssueDetail({ issueId, onBack, userRole }: IssueDetailProps) {
   };
 
   const handleSubmitFollowUp = async () => {
-    if (!followUpName.trim()) { alert('请输入处理人姓名'); return; }
     if (followUpImages.length === 0) { alert('请至少上传一张处理图片'); return; }
     setFollowUpSubmitting(true);
     try {
@@ -462,7 +461,7 @@ export function IssueDetail({ issueId, onBack, userRole }: IssueDetailProps) {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  处理人 <span className="text-red-500">*</span>
+                  处理人
                 </label>
                 <input
                   type="text"
