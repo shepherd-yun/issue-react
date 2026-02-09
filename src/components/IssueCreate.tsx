@@ -40,26 +40,12 @@ export function IssueCreate({ onBack }: IssueCreateProps) {
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
+          // 使用高德地图逆地理编码 API
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-            {
-              headers: {
-                'Accept-Language': 'zh-CN',
-              },
-            }
+            `https://restapi.amap.com/v3/geocode/regeo?key=d1e3358b9104a1c7aefa26f3f16f421b&location=${longitude},${latitude}`
           );
           const data = await response.json();
-          const addr = data.address || {};
-          // 按中国地址格式拼接：省 + 市 + 区县 + 街道/道路
-          const parts = [
-            addr.state || addr.province || '',           // 省
-            addr.city || addr.municipality || '',        // 市
-            addr.county || addr.district || addr.suburb || '', // 区县
-            addr.town || addr.village || '',             // 镇/村
-            addr.road || addr.street || '',              // 街道/道路
-            addr.neighbourhood || '',                    // 小区
-          ].filter(Boolean);
-          const address = parts.join('');
+          const address = data.regeocode?.formatted_address || '';
           handleInputChange('location', address || `经度: ${longitude.toFixed(6)}, 纬度: ${latitude.toFixed(6)}`);
         } catch {
           handleInputChange('location', `经度: ${longitude.toFixed(6)}, 纬度: ${latitude.toFixed(6)}`);
