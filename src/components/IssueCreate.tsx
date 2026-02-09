@@ -49,7 +49,17 @@ export function IssueCreate({ onBack }: IssueCreateProps) {
             }
           );
           const data = await response.json();
-          const address = data.display_name || '';
+          const addr = data.address || {};
+          // 按中国地址格式拼接：省 + 市 + 区县 + 街道/道路
+          const parts = [
+            addr.state || addr.province || '',           // 省
+            addr.city || addr.municipality || '',        // 市
+            addr.county || addr.district || addr.suburb || '', // 区县
+            addr.town || addr.village || '',             // 镇/村
+            addr.road || addr.street || '',              // 街道/道路
+            addr.neighbourhood || '',                    // 小区
+          ].filter(Boolean);
+          const address = parts.join('');
           handleInputChange('location', address || `经度: ${longitude.toFixed(6)}, 纬度: ${latitude.toFixed(6)}`);
         } catch {
           handleInputChange('location', `经度: ${longitude.toFixed(6)}, 纬度: ${latitude.toFixed(6)}`);
