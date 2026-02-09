@@ -41,15 +41,15 @@ export function IssueCreate({ onBack }: IssueCreateProps) {
         const { latitude, longitude } = position.coords;
         try {
           const response = await fetch(
-            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=zh`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+            {
+              headers: {
+                'Accept-Language': 'zh-CN',
+              },
+            }
           );
           const data = await response.json();
-          const address =
-            (data.principalSubdivision || '') +
-            (data.city || '') +
-            (data.locality || '') +
-            (data.localityInfo?.administrative?.[4]?.name || '') +
-            (data.localityInfo?.administrative?.[5]?.name || '');
+          const address = data.display_name || '';
           handleInputChange('location', address || `经度: ${longitude.toFixed(6)}, 纬度: ${latitude.toFixed(6)}`);
         } catch {
           handleInputChange('location', `经度: ${longitude.toFixed(6)}, 纬度: ${latitude.toFixed(6)}`);
@@ -59,7 +59,7 @@ export function IssueCreate({ onBack }: IssueCreateProps) {
       (error) => {
         setIsLocating(false);
         let errorMsg = '定位失败';
-        switch(error.code) {
+        switch (error.code) {
           case error.PERMISSION_DENIED:
             errorMsg = '您拒绝了定位权限，请在浏览器设置中允许定位';
             break;

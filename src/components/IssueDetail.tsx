@@ -41,6 +41,7 @@ export function IssueDetail({ issueId, onBack, userRole }: IssueDetailProps) {
   const [followUpSubmitting, setFollowUpSubmitting] = useState(false);
   const [followUpUploading, setFollowUpUploading] = useState(false);
   const followUpFileRef = useRef<HTMLInputElement>(null);
+  const followUpFormRef = useRef<HTMLDivElement>(null);
 
   // Reject dialog state
   const [showRejectDialog, setShowRejectDialog] = useState(false);
@@ -354,7 +355,12 @@ export function IssueDetail({ issueId, onBack, userRole }: IssueDetailProps) {
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">处理记录</h3>
               <button
-                onClick={() => setShowFollowUpForm(true)}
+                onClick={() => {
+                  setShowFollowUpForm(true);
+                  setTimeout(() => {
+                    followUpFormRef.current?.scrollIntoView({ behavior: 'instant', block: 'start' });
+                  }, 100);
+                }}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
               >
                 <Plus className="size-4" />
@@ -451,7 +457,7 @@ export function IssueDetail({ issueId, onBack, userRole }: IssueDetailProps) {
 
         {/* 添加处理记录表单 */}
         {showFollowUpForm && (
-          <div className="mt-6 bg-white rounded-lg shadow-sm p-6">
+          <div ref={followUpFormRef} className="mt-6 bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">添加处理记录</h3>
             <div className="space-y-4">
               <div>
