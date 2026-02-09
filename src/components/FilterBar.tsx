@@ -47,41 +47,26 @@ export function FilterBar({ onSearch, statusCounts, currentStatus, onStatusChang
     });
   };
 
-  const statusTabs = [
-    { key: 'all', label: '全部', count: statusCounts.all },
-    { key: 'pending', label: '未解决', count: statusCounts.pending },
-    { key: 'resolved', label: '已解决', count: statusCounts.resolved },
-  ];
+  const handleStatusSelect = (status: string) => {
+    onStatusChange(status);
+    onSearch({
+      area,
+      issueNumber,
+      dateRange: { start: startDate, end: endDate },
+      title,
+      phone,
+      status,
+    });
+  };
+
+  const statusLabel = (key: string) => {
+    const map: Record<string, string> = { all: '全部', pending: '未解决', resolved: '已解决' };
+    const count = key === 'all' ? statusCounts.all : key === 'pending' ? statusCounts.pending : statusCounts.resolved;
+    return `${map[key]} (${count})`;
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-      {/* Status tab buttons */}
-      <div className="flex gap-2 mb-4">
-        {statusTabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => {
-              onStatusChange(tab.key);
-              onSearch({
-                area,
-                issueNumber,
-                dateRange: { start: startDate, end: endDate },
-                title,
-                phone,
-                status: tab.key,
-              });
-            }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              currentStatus === tab.key
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            {tab.label}({tab.count})
-          </button>
-        ))}
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <select
           value={area}
@@ -94,11 +79,20 @@ export function FilterBar({ onSearch, statusCounts, currentStatus, onStatusChang
           ))}
         </select>
 
+        <select
+          value={currentStatus}
+          onChange={(e) => handleStatusSelect(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="all">{statusLabel('all')}</option>
+          <option value="pending">{statusLabel('pending')}</option>
+          <option value="resolved">{statusLabel('resolved')}</option>
+        </select>
+
         <input
           type="date"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
-          placeholder="创建开始时间"
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
@@ -106,10 +100,11 @@ export function FilterBar({ onSearch, statusCounts, currentStatus, onStatusChang
           type="date"
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
-          placeholder="创建结束时间"
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <input
           type="text"
           value={issueNumber}
@@ -117,9 +112,7 @@ export function FilterBar({ onSearch, statusCounts, currentStatus, onStatusChang
           placeholder="请输入问题单号"
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <input
           type="text"
           value={title}
@@ -135,8 +128,6 @@ export function FilterBar({ onSearch, statusCounts, currentStatus, onStatusChang
           placeholder="请输入手机号"
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-
-        <div />
 
         <div className="flex gap-3">
           <button
