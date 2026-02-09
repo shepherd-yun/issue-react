@@ -4,8 +4,9 @@ import type { FollowUp } from '../types';
 export async function createFollowUp(
   issueId: string,
   data: {
-    handleDescription: string;
-    handleImages?: string[];
+    handlerName: string;
+    handleImages: string[];
+    handleDescription?: string;
   },
 ): Promise<FollowUp> {
   const { data: result } = await client.post<FollowUp>(
@@ -20,9 +21,6 @@ export async function updateFollowUp(
   data: {
     handleDescription?: string;
     handleImages?: string[];
-    resolver?: string;
-    resolveDescription?: string;
-    resolveImages?: string[];
   },
 ): Promise<FollowUp> {
   const { data: result } = await client.patch<FollowUp>(

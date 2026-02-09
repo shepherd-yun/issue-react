@@ -1,20 +1,22 @@
 import { useState } from 'react';
 import { Search, RotateCcw } from 'lucide-react';
 import { AREAS } from '../types';
-import type { IssueFilters } from '../types';
+import type { IssueFilters, StatusCounts } from '../types';
 
 interface FilterBarProps {
   onSearch: (filters: IssueFilters) => void;
+  statusCounts: StatusCounts;
+  currentStatus: string;
+  onStatusChange: (status: string) => void;
 }
 
-export function FilterBar({ onSearch }: FilterBarProps) {
+export function FilterBar({ onSearch, statusCounts, currentStatus, onStatusChange }: FilterBarProps) {
   const [area, setArea] = useState('');
   const [issueNumber, setIssueNumber] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [title, setTitle] = useState('');
   const [phone, setPhone] = useState('');
-  const [status, setStatus] = useState('all');
 
   const handleSearch = () => {
     onSearch({
@@ -23,7 +25,7 @@ export function FilterBar({ onSearch }: FilterBarProps) {
       dateRange: { start: startDate, end: endDate },
       title,
       phone,
-      status,
+      status: currentStatus,
     });
   };
 
@@ -34,7 +36,7 @@ export function FilterBar({ onSearch }: FilterBarProps) {
     setEndDate('');
     setTitle('');
     setPhone('');
-    setStatus('all');
+    onStatusChange('all');
     onSearch({
       area: '',
       issueNumber: '',
@@ -45,8 +47,41 @@ export function FilterBar({ onSearch }: FilterBarProps) {
     });
   };
 
+  const statusTabs = [
+    { key: 'all', label: '全部', count: statusCounts.all },
+    { key: 'pending', label: '未解决', count: statusCounts.pending },
+    { key: 'resolved', label: '已解决', count: statusCounts.resolved },
+  ];
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+      {/* Status tab buttons */}
+      <div className="flex gap-2 mb-4">
+        {statusTabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => {
+              onStatusChange(tab.key);
+              onSearch({
+                area,
+                issueNumber,
+                dateRange: { start: startDate, end: endDate },
+                title,
+                phone,
+                status: tab.key,
+              });
+            }}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              currentStatus === tab.key
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {tab.label}({tab.count})
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <select
           value={area}
@@ -57,17 +92,6 @@ export function FilterBar({ onSearch }: FilterBarProps) {
           {AREAS.map((a) => (
             <option key={a} value={a}>{a}</option>
           ))}
-        </select>
-
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="all">全部状态</option>
-          <option value="pending">待处理</option>
-          <option value="processing">处理中</option>
-          <option value="resolved">已解决</option>
         </select>
 
         <input
@@ -85,9 +109,7 @@ export function FilterBar({ onSearch }: FilterBarProps) {
           placeholder="创建结束时间"
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <input
           type="text"
           value={issueNumber}
@@ -95,7 +117,9 @@ export function FilterBar({ onSearch }: FilterBarProps) {
           placeholder="请输入问题单号"
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <input
           type="text"
           value={title}
@@ -111,6 +135,8 @@ export function FilterBar({ onSearch }: FilterBarProps) {
           placeholder="请输入手机号"
           className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+
+        <div />
 
         <div className="flex gap-3">
           <button

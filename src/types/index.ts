@@ -15,7 +15,8 @@ export const AREAS = [
 
 export type Area = (typeof AREAS)[number];
 
-export type IssueStatus = 'pending' | 'processing' | 'resolved';
+export type IssueStatus = 'pending' | 'resolved';
+export type FollowUpStatus = 'normal' | 'rejected' | 'resolved';
 export type Role = 'admin' | 'resolver';
 export type UserRole = 'user' | 'resolver' | 'admin';
 
@@ -29,13 +30,13 @@ export interface User {
 export interface Issue {
   id: string;
   issueNumber: string;
-  title: string;
-  description: string;
+  title: string | null;
+  description: string | null;
   status: IssueStatus;
-  creator: string;
-  phone: string;
+  creator: string | null;
+  phone: string | null;
   area: string;
-  location: string;
+  location: string | null;
   images: string[];
   deadline: string | null;
   createdAt: string;
@@ -46,15 +47,22 @@ export interface Issue {
 export interface FollowUp {
   id: string;
   issueId: string;
-  handlerId: string;
-  handleDescription: string;
+  handlerId: string | null;
+  handlerName: string;
+  handleDescription: string | null;
   handleImages: string[];
   handleTime: string;
-  resolver: string | null;
-  resolveDescription: string | null;
-  resolveImages: string[];
-  resolveTime: string | null;
-  handler: { id: string; name: string };
+  status: FollowUpStatus;
+  rejectionReason: string | null;
+  rejectedBy: string | null;
+  rejectedAt: string | null;
+  handler: { id: string; name: string } | null;
+}
+
+export interface StatusCounts {
+  all: number;
+  pending: number;
+  resolved: number;
 }
 
 export interface PaginatedResponse<T> {
@@ -62,6 +70,7 @@ export interface PaginatedResponse<T> {
   total: number;
   page: number;
   pageSize: number;
+  statusCounts: StatusCounts;
 }
 
 export interface LoginResponse {

@@ -7,9 +7,9 @@ import { Login } from './components/Login';
 import { Plus, LogIn, LogOut, UserCircle2 } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 import { getIssues, type QueryParams } from './api/issues';
-import type { Issue, IssueFilters } from './types';
+import type { Issue, IssueFilters, StatusCounts } from './types';
 
-type PageView = 'list' | 'detail' | 'edit' | 'create' | 'login';
+type PageView = 'list' | 'detail' | 'create' | 'login';
 
 export default function App() {
   const { isLoggedIn, userRole, userName, logout } = useAuth();
@@ -31,6 +31,7 @@ export default function App() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [statusCounts, setStatusCounts] = useState<StatusCounts>({ all: 0, pending: 0, resolved: 0 });
 
   const fetchIssues = useCallback(async () => {
     setLoading(true);
@@ -49,6 +50,7 @@ export default function App() {
       const result = await getIssues(params);
       setIssues(result.data);
       setTotal(result.total);
+      setStatusCounts(result.statusCounts);
     } catch (err) {
       console.error('获取列表失败:', err);
     } finally {
@@ -67,14 +69,14 @@ export default function App() {
     setCurrentPage(1);
   };
 
+  const handleStatusChange = (status: string) => {
+    setFilters(prev => ({ ...prev, status }));
+    setCurrentPage(1);
+  };
+
   const handleViewDetail = (issue: Issue) => {
     setSelectedIssueId(issue.id);
     setCurrentView('detail');
-  };
-
-  const handleEdit = (issue: Issue) => {
-    setSelectedIssueId(issue.id);
-    setCurrentView('edit');
   };
 
   const handleCreateNew = () => {
@@ -150,7 +152,12 @@ export default function App() {
             </div>
           </div>
 
-          <FilterBar onSearch={handleSearch} />
+          <FilterBar
+            onSearch={handleSearch}
+            statusCounts={statusCounts}
+            currentStatus={filters.status}
+            onStatusChange={handleStatusChange}
+          />
 
           <IssueList
             issues={issues}
@@ -161,7 +168,6 @@ export default function App() {
             onPageChange={setCurrentPage}
             onPageSizeChange={setPageSize}
             onViewDetail={handleViewDetail}
-            onEdit={handleEdit}
             onDeleted={fetchIssues}
             userRole={userRole}
           />
@@ -173,7 +179,6 @@ export default function App() {
           issueId={selectedIssueId!}
           onBack={handleBackToList}
           userRole={userRole}
-          isEditMode={currentView === 'edit'}
         />
       )}
     </div>

@@ -37,10 +37,23 @@ export function IssueCreate({ onBack }: IssueCreateProps) {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const { latitude, longitude } = position.coords;
-        const mockAddress = `经度: ${longitude.toFixed(6)}, 纬度: ${latitude.toFixed(6)}`;
-        handleInputChange('location', mockAddress);
+        try {
+          const response = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=zh`
+          );
+          const data = await response.json();
+          const address =
+            (data.principalSubdivision || '') +
+            (data.city || '') +
+            (data.locality || '') +
+            (data.localityInfo?.administrative?.[4]?.name || '') +
+            (data.localityInfo?.administrative?.[5]?.name || '');
+          handleInputChange('location', address || `经度: ${longitude.toFixed(6)}, 纬度: ${latitude.toFixed(6)}`);
+        } catch {
+          handleInputChange('location', `经度: ${longitude.toFixed(6)}, 纬度: ${latitude.toFixed(6)}`);
+        }
         setIsLocating(false);
       },
       (error) => {
@@ -91,16 +104,20 @@ export function IssueCreate({ onBack }: IssueCreateProps) {
   };
 
   const handleSubmit = async () => {
-    if (!formData.title.trim()) { alert('请输入问题标题'); return; }
-    if (!formData.description.trim()) { alert('请输入问题描述'); return; }
+    if (images.length === 0) { alert('请至少上传一张图片'); return; }
     if (!formData.area) { alert('请选择问题区域'); return; }
-    if (!formData.location.trim()) { alert('请输入或获取问题位置'); return; }
-    if (!formData.creator.trim()) { alert('请输入创建人姓名'); return; }
-    if (!formData.phone.trim()) { alert('请输入联系电话'); return; }
 
     setSubmitting(true);
     try {
-      await createIssue({ ...formData, images });
+      await createIssue({
+        images,
+        area: formData.area,
+        title: formData.title || undefined,
+        description: formData.description || undefined,
+        location: formData.location || undefined,
+        creator: formData.creator || undefined,
+        phone: formData.phone || undefined,
+      });
       alert('问题上报成功！');
       onBack();
     } catch (err: any) {
@@ -129,126 +146,13 @@ export function IssueCreate({ onBack }: IssueCreateProps) {
         {/* 表单区域 */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="space-y-6">
-            {/* 问题标题 */}
+            {/* 上报图片 - 必填 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                问题标题 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                placeholder="请输入问题标题"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* 问题区域和创建人姓名 */}
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  问题区域 <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={formData.area}
-                  onChange={(e) => handleInputChange('area', e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">请选择区域</option>
-                  {AREAS.map((a) => (
-                    <option key={a} value={a}>{a}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  创建人姓名 <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.creator}
-                  onChange={(e) => handleInputChange('creator', e.target.value)}
-                  placeholder="请输入姓名"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            {/* 联系电话 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                联系电话 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="请输入联系电话"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* 问题位置 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                问题位置 <span className="text-red-500">*</span>
-              </label>
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="请输入具体位置或点击定位按钮获取"
-                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button
-                  onClick={handleGetLocation}
-                  disabled={isLocating}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  {isLocating ? (
-                    <>
-                      <Loader2 className="size-5 animate-spin" />
-                      定位中...
-                    </>
-                  ) : (
-                    <>
-                      <MapPin className="size-5" />
-                      获取定位
-                    </>
-                  )}
-                </button>
-              </div>
-              <div className="mt-2 text-sm text-gray-500">
-                点击"获取定位"按钮可自动获取当前位置，或手动输入具体位置
-              </div>
-            </div>
-
-            {/* 问题描述 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                问题描述 <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="请详细描述遇到的问题，包括问题发生的时间、地点、具体现象等"
-                rows={6}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              />
-              <div className="mt-2 text-sm text-gray-500">
-                {formData.description.length} / 500 字
-              </div>
-            </div>
-
-            {/* 上报图片 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                上报图片
+                上报图片 <span className="text-red-500">*</span>
               </label>
               <div className="text-sm text-gray-500 mb-3">
-                最多上传9张图片，支持JPG、PNG格式，单张图片不超过5MB
+                最少上传1张图片，最多9张，支持JPG、PNG格式，单张图片不超过5MB
               </div>
 
               <input
@@ -296,6 +200,119 @@ export function IssueCreate({ onBack }: IssueCreateProps) {
               </div>
             </div>
 
+            {/* 问题区域 - 必填 */}
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  问题区域 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.area}
+                  onChange={(e) => handleInputChange('area', e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">请选择区域</option>
+                  {AREAS.map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  创建人姓名
+                </label>
+                <input
+                  type="text"
+                  value={formData.creator}
+                  onChange={(e) => handleInputChange('creator', e.target.value)}
+                  placeholder="请输入姓名"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* 问题标题 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                问题标题
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                placeholder="请输入问题标题"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* 联系电话 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                联系电话
+              </label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                placeholder="请输入联系电话"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* 问题位置 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                问题位置
+              </label>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={formData.location}
+                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  placeholder="请输入具体位置或点击定位按钮获取"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  onClick={handleGetLocation}
+                  disabled={isLocating}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {isLocating ? (
+                    <>
+                      <Loader2 className="size-5 animate-spin" />
+                      定位中...
+                    </>
+                  ) : (
+                    <>
+                      <MapPin className="size-5" />
+                      获取定位
+                    </>
+                  )}
+                </button>
+              </div>
+              <div className="mt-2 text-sm text-gray-500">
+                点击"获取定位"按钮可自动获取当前位置，或手动输入具体位置
+              </div>
+            </div>
+
+            {/* 问题描述 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                问题描述
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="请详细描述遇到的问题，包括问题发生的时间、地点、具体现象等"
+                rows={6}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              />
+              <div className="mt-2 text-sm text-gray-500">
+                {formData.description.length} / 500 字
+              </div>
+            </div>
+
             {/* 提示信息 */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start gap-3">
@@ -303,7 +320,7 @@ export function IssueCreate({ onBack }: IssueCreateProps) {
                 <div className="text-sm text-blue-900">
                   <p className="font-medium mb-1">温馨提示：</p>
                   <ul className="list-disc list-inside space-y-1 text-blue-800">
-                    <li>请准确描述问题，有助于快速处理</li>
+                    <li>上报图片和问题区域为必填项</li>
                     <li>建议上传现场照片，便于问题定位</li>
                     <li>使用定位功能可精确记录问题位置</li>
                     <li>提交后您可以在列表中查看处理进度</li>

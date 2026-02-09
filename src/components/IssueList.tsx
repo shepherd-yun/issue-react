@@ -1,4 +1,4 @@
-import { Eye, Edit, Trash2, Loader2 } from 'lucide-react';
+import { Eye, Trash2, Loader2 } from 'lucide-react';
 import { deleteIssue } from '../api/issues';
 import type { Issue, UserRole } from '../types';
 
@@ -11,14 +11,12 @@ interface IssueListProps {
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
   onViewDetail: (issue: Issue) => void;
-  onEdit: (issue: Issue) => void;
   onDeleted: () => void;
   userRole: UserRole;
 }
 
 const statusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: '待处理', color: 'bg-amber-500 text-white' },
-  processing: { label: '处理中', color: 'bg-blue-600 text-white' },
+  pending: { label: '未解决', color: 'bg-amber-500 text-white' },
   resolved: { label: '已解决', color: 'bg-green-600 text-white' },
 };
 
@@ -42,15 +40,14 @@ export function IssueList({
   onPageChange,
   onPageSizeChange,
   onViewDetail,
-  onEdit,
   onDeleted,
   userRole,
 }: IssueListProps) {
   const totalPages = Math.ceil(total / pageSize);
-  const canEdit = userRole === 'resolver' || userRole === 'admin';
+  const isAdmin = userRole === 'admin';
 
   const handleDelete = async (issue: Issue) => {
-    if (!confirm(`确定要删除问题「${issue.title}」吗？`)) return;
+    if (!confirm(`确定要删除问题「${issue.title || issue.issueNumber}」吗？`)) return;
     try {
       await deleteIssue(issue.id);
       onDeleted();
@@ -75,10 +72,10 @@ export function IssueList({
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="sticky left-0 z-10 bg-gray-50 px-6 py-4 text-left text-sm font-medium text-gray-700 border-r border-gray-200">问题单号</th>
-              <th className="sticky left-[140px] z-10 bg-gray-50 px-6 py-4 text-left text-sm font-medium text-gray-700 border-r border-gray-200">问题标题</th>
+              <th className="sticky left-[140px] z-10 bg-gray-50 px-6 py-4 text-left text-sm font-medium text-gray-700 border-r border-gray-200">问题区域</th>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 whitespace-nowrap">问题标题</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 whitespace-nowrap">问题描述</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 whitespace-nowrap">问题位置</th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 whitespace-nowrap">问题区域</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 whitespace-nowrap">状态</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 whitespace-nowrap">创建时间</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-700 whitespace-nowrap">创建人</th>
@@ -105,23 +102,25 @@ export function IssueList({
                     </button>
                   </td>
                   <td className="sticky left-[140px] z-10 bg-white px-6 py-4 border-r border-gray-200">
-                    <div className="text-sm text-gray-900 whitespace-nowrap">{item.title}</div>
+                    <div className="text-sm text-gray-900 whitespace-nowrap">{item.area}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-700 w-[200px] truncate" title={item.description}>
-                      {item.description}
+                    <div className="text-sm text-gray-900 whitespace-nowrap">{item.title || '-'}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-700 w-[200px] truncate" title={item.description || ''}>
+                      {item.description || '-'}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{item.location}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{item.area}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{item.location || '-'}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-3 py-1 rounded-md text-xs font-medium whitespace-nowrap ${statusMap[item.status]?.color || ''}`}>
                       {statusMap[item.status]?.label || item.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{formatTime(item.createdAt)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{item.creator}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{item.phone}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{item.creator || '-'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{item.phone || '-'}</td>
                   <td className="sticky right-0 z-10 bg-white px-6 py-4 border-l border-gray-200">
                     <div className="flex gap-2">
                       <button
@@ -131,23 +130,14 @@ export function IssueList({
                       >
                         <Eye className="size-4" />
                       </button>
-                      {canEdit && (
-                        <>
-                          <button
-                            onClick={() => onEdit(item)}
-                            className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                            title="编辑"
-                          >
-                            <Edit className="size-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item)}
-                            className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                            title="删除"
-                          >
-                            <Trash2 className="size-4" />
-                          </button>
-                        </>
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDelete(item)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                          title="删除"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
                       )}
                     </div>
                   </td>

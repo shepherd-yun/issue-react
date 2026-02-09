@@ -39,13 +39,13 @@ export async function getIssue(id: string): Promise<Issue> {
 }
 
 export async function createIssue(issue: {
-  title: string;
-  description: string;
+  images: string[];
   area: string;
-  location: string;
-  creator: string;
-  phone: string;
-  images?: string[];
+  title?: string;
+  description?: string;
+  location?: string;
+  creator?: string;
+  phone?: string;
 }): Promise<Issue> {
   const { data } = await client.post<Issue>('/issues', issue);
   return data;
@@ -78,6 +78,21 @@ export async function updateIssueStatus(
 ): Promise<Issue> {
   const { data } = await client.patch<Issue>(`/issues/${id}/status`, {
     status,
+  });
+  return data;
+}
+
+export async function resolveIssue(id: string): Promise<Issue> {
+  const { data } = await client.patch<Issue>(`/issues/${id}/resolve`);
+  return data;
+}
+
+export async function rejectIssue(
+  id: string,
+  rejectionReason?: string,
+): Promise<Issue> {
+  const { data } = await client.patch<Issue>(`/issues/${id}/reject`, {
+    rejectionReason,
   });
   return data;
 }
