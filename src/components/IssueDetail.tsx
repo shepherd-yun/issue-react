@@ -157,12 +157,19 @@ export function IssueDetail({ issueId, onBack, userRole }: IssueDetailProps) {
     }
   };
 
-  const handleDownloadImage = (url: string) => {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = url.split('/').pop() || 'image';
-    a.target = '_blank';
-    a.click();
+  const handleDownloadImage = async (url: string) => {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = url.split('/').pop() || 'image';
+      a.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      window.open(url, '_blank');
+    }
   };
 
   const handleDeleteFollowUpImage = async (followUpId: string, imageIndex: number, currentImages: string[]) => {
