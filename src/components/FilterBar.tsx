@@ -60,9 +60,14 @@ export function FilterBar({ onSearch, statusCounts, currentStatus, onStatusChang
   };
 
   const statusLabel = (key: string) => {
-    const map: Record<string, string> = { all: '全部', pending: '未解决', resolved: '已解决' };
-    const count = key === 'all' ? statusCounts.all : key === 'pending' ? statusCounts.pending : statusCounts.resolved;
-    return `${map[key]} (${count})`;
+    const map: Record<string, string> = { all: '全部', pending: '未解决', rejected: '已驳回', resolved: '已解决' };
+    const countMap: Record<string, number> = {
+      all: statusCounts.all,
+      pending: statusCounts.pending,
+      rejected: statusCounts.rejected ?? 0,
+      resolved: statusCounts.resolved,
+    };
+    return `${map[key]} (${countMap[key]})`;
   };
 
   return (
@@ -86,6 +91,7 @@ export function FilterBar({ onSearch, statusCounts, currentStatus, onStatusChang
         >
           <option value="all">{statusLabel('all')}</option>
           <option value="pending">{statusLabel('pending')}</option>
+          <option value="rejected">{statusLabel('rejected')}</option>
           <option value="resolved">{statusLabel('resolved')}</option>
         </select>
 

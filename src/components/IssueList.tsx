@@ -17,6 +17,7 @@ interface IssueListProps {
 
 const statusMap: Record<string, { label: string; color: string }> = {
   pending: { label: '未解决', color: 'bg-amber-500 text-white' },
+  rejected: { label: '已驳回', color: 'bg-red-500 text-white' },
   resolved: { label: '已解决', color: 'bg-green-600 text-white' },
 };
 

@@ -18,6 +18,7 @@ interface IssueDetailProps {
 
 const statusMap: Record<string, { label: string; color: string }> = {
   pending: { label: '未解决', color: 'bg-amber-500 text-white' },
+  rejected: { label: '已驳回', color: 'bg-red-500 text-white' },
   resolved: { label: '已解决', color: 'bg-green-600 text-white' },
 };
 
@@ -200,7 +201,7 @@ export function IssueDetail({ issueId, onBack, userRole }: IssueDetailProps) {
               {statusMap[issue.status]?.label || issue.status}
             </span>
           </div>
-          {isAdmin && issue.status === 'pending' && (
+          {isAdmin && (issue.status === 'pending' || issue.status === 'rejected') && (
             <div className="flex items-center gap-3">
               <button
                 onClick={handleResolve}
@@ -475,15 +476,12 @@ export function IssueDetail({ issueId, onBack, userRole }: IssueDetailProps) {
                           {record.handleImages.map((img, idx) => (
                             <div key={idx} className="relative aspect-square rounded overflow-hidden bg-gray-100 group cursor-pointer">
                               <img src={img} alt={`处理图片${idx + 1}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100">
-                                <button onClick={() => setPreviewImage(img)} className="p-1 bg-white/90 rounded-full hover:bg-white text-gray-700" title="查看">
-                                  <Eye className="size-3.5" />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
+                                <button onClick={() => setPreviewImage(img)} className="p-2 bg-white/90 rounded-full hover:bg-white text-gray-700" title="查看">
+                                  <Eye className="size-5" />
                                 </button>
-                                <button onClick={() => handleDownloadImage(img)} className="p-1 bg-white/90 rounded-full hover:bg-white text-gray-700" title="下载">
-                                  <Download className="size-3.5" />
-                                </button>
-                                <button onClick={() => handleDeleteFollowUpImage(record.id, idx, record.handleImages)} className="p-1 bg-white/90 rounded-full hover:bg-white text-red-600" title="删除">
-                                  <Trash2 className="size-3.5" />
+                                <button onClick={() => handleDownloadImage(img)} className="p-2 bg-white/90 rounded-full hover:bg-white text-gray-700" title="下载">
+                                  <Download className="size-5" />
                                 </button>
                               </div>
                             </div>

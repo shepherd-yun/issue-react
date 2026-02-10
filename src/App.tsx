@@ -31,7 +31,7 @@ export default function App() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [statusCounts, setStatusCounts] = useState<StatusCounts>({ all: 0, pending: 0, resolved: 0 });
+  const [statusCounts, setStatusCounts] = useState<StatusCounts>({ all: 0, pending: 0, rejected: 0, resolved: 0 });
 
   const fetchIssues = useCallback(async () => {
     setLoading(true);

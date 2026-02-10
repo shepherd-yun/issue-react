@@ -15,7 +15,7 @@ export const AREAS = [
 
 export type Area = (typeof AREAS)[number];
 
-export type IssueStatus = 'pending' | 'resolved';
+export type IssueStatus = 'pending' | 'rejected' | 'resolved';
 export type FollowUpStatus = 'normal' | 'rejected' | 'resolved';
 export type Role = 'admin' | 'resolver';
 export type UserRole = 'user' | 'resolver' | 'admin';
@@ -62,6 +62,7 @@ export interface FollowUp {
 export interface StatusCounts {
   all: number;
   pending: number;
+  rejected: number;
   resolved: number;
 }
 
