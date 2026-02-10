@@ -112,7 +112,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       {currentView === 'list' ? (
-        <div className="max-w-[1400px] mx-auto p-6">
+        <div className="px-6 py-6">
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-gray-900">问题整改</h1>
             <div className="flex items-center gap-4">

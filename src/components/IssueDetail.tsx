@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   ArrowLeft, Calendar, User, Phone, MapPin, FileText,
-  AlertCircle, Loader2, Upload, X, Trash2,
+  AlertCircle, Loader2, Upload, X, Trash2, Edit2,
   Eye, Download, Plus, CheckCircle, XCircle,
 } from 'lucide-react';
-import { getIssue } from '../api/issues';
+import { getIssue, updateIssue } from '../api/issues';
 import { resolveIssue, rejectIssue } from '../api/issues';
 import { createFollowUp, updateFollowUp, deleteFollowUp } from '../api/followUps';
 import { uploadImages } from '../api/upload';
@@ -51,6 +51,10 @@ export function IssueDetail({ issueId, onBack, userRole }: IssueDetailProps) {
 
   // Image preview state
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  // Deadline state
+  const [showDeadlineForm, setShowDeadlineForm] = useState(false);
+  const [deadlineValue, setDeadlineValue] = useState('');
 
   const fetchIssue = async () => {
     setLoading(true);
@@ -141,6 +145,17 @@ export function IssueDetail({ issueId, onBack, userRole }: IssueDetailProps) {
     }
   };
 
+  const handleSetDeadline = async () => {
+    if (!deadlineValue) { alert('请选择截止时间'); return; }
+    try {
+      await updateIssue(issueId, { deadline: new Date(deadlineValue).toISOString() });
+      setShowDeadlineForm(false);
+      await fetchIssue();
+    } catch (err: any) {
+      alert(err.response?.data?.message || '设置截止时间失败');
+    }
+  };
+
   const handleDownloadImage = (url: string) => {
     const a = document.createElement('a');
     a.href = url;
@@ -173,7 +188,7 @@ export function IssueDetail({ issueId, onBack, userRole }: IssueDetailProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-[1400px] mx-auto p-6">
+      <div className="px-6 py-6">
         {/* 头部 */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -251,7 +266,36 @@ export function IssueDetail({ issueId, onBack, userRole }: IssueDetailProps) {
         <div className="space-y-6">
           {/* 基本信息 */}
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">基本信息</h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">基本信息</h3>
+              {isAdmin && (
+                <button
+                  onClick={() => setShowDeadlineForm(!showDeadlineForm)}
+                  className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+                >
+                  <Edit2 className="size-4" />
+                  设置截止时间
+                </button>
+              )}
+            </div>
+
+            {/* 截止时间设置表单 */}
+            {showDeadlineForm && isAdmin && (
+              <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-3">
+                <input
+                  type="datetime-local"
+                  value={deadlineValue}
+                  onChange={(e) => setDeadlineValue(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button onClick={handleSetDeadline} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                  确认
+                </button>
+                <button onClick={() => setShowDeadlineForm(false)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm">
+                  取消
+                </button>
+              </div>
+            )}
 
             {/* 处理截止时间 */}
             {issue.deadline && (
