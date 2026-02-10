@@ -158,10 +158,11 @@ export function IssueDetail({ issueId, onBack, userRole }: IssueDetailProps) {
   };
 
   const handleDownloadImage = (url: string) => {
+    const secureUrl = url.replace(/^http:\/\//, 'https://');
     const iframe = document.createElement('iframe');
     iframe.style.display = 'none';
     document.body.appendChild(iframe);
-    iframe.src = url;
+    iframe.src = secureUrl;
     setTimeout(() => document.body.removeChild(iframe), 10000);
   };
 
