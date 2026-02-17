@@ -13,8 +13,19 @@ client.interceptors.request.use((config) => {
 });
 
 client.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Unwrap backend { code, message, data } envelope
+    if (response.data && typeof response.data === 'object' && 'code' in response.data) {
+      response.data = response.data.data;
+    }
+    return response;
+  },
   (error) => {
+    // Extract error message from wrapped error response
+    const msg = error.response?.data?.message;
+    if (msg) {
+      error.message = msg;
+    }
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
